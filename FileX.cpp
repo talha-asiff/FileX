@@ -8,6 +8,8 @@ using namespace std;
 int main() {
     ofstream out("C:\\FileX\\Data\\info.txt");
     ifstream inp("C:\\FileX\\Data\\info.txt");
+    string line;
+    while(getline(inp, line)){}
     InitWindow(800, 450, "FileX - LAN File Transfer System");
     SetTargetFPS(60);
     int clickCount = 0;
@@ -15,7 +17,7 @@ int main() {
     Image img = LoadImage("logo.png");
     ImageResize(&img, 360, 180);
     Texture2D texture = LoadTextureFromImage(img);
-    char nameBuffer[64] = "File Path to send...";
+    char nameBuffer[64] = "";
     bool textBoxEditMode = false;
     while (!WindowShouldClose()) {
         BeginDrawing();
@@ -33,6 +35,16 @@ int main() {
                 }
             } else if (mode == 2) {
                 DrawText("RECV MODE", 400, 130, 20, RAYWHITE);
+                if(line == ""){
+                    DrawText("SERVER IP", 400, 150, 10, RAYWHITE);
+                if (GuiTextBox((Rectangle){ 400, 190, 300, 50 }, nameBuffer, 64, textBoxEditMode)) {
+                    textBoxEditMode = !textBoxEditMode;
+                }
+                if (GuiButton((Rectangle){400 , 240, 160, 40 }, "CONNECT AND SAVE")) {
+                    out << nameBuffer;
+                }
+                }
+
             } else {
                 if (GuiButton((Rectangle){400 , 150, 160, 40 }, "SEND FILES")) {
                     mode = 1;

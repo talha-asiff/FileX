@@ -3,15 +3,17 @@
   "tasks": [
     {
       "type": "shell",
-      "label": "Build Raylib App",
-      "command": "g++",
+      "label": "Build FileX",
+      "command": "C:\\raylib\\w64devkit\\bin\\g++.exe",
       "args": [
         "-std=c++17",
         "${file}",
         "-o",
         "${fileDirname}\\${fileBasenameNoExtension}.exe",
-        "-I", "C:\\raylib\\w64devkit\\include",
-        "-L", "C:\\raylib\\w64devkit\\lib",
+        "-I",
+        "C:\\raylib\\w64devkit\\include",
+        "-L",
+        "C:\\raylib\\w64devkit\\lib",
         "-lraylib",
         "-lopengl32",
         "-lgdi32",

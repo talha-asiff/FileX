@@ -44,6 +44,7 @@ int main() {
             
         EndDrawing();
     }
+    UnloadImage(img);
     UnloadTexture(texture);
     CloseWindow();
     return 0;

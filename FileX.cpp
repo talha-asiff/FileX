@@ -12,7 +12,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-
+#include <inttypes.h>
 // Windows Sockets setup
 #define WIN32_LEAN_AND_MEAN
 #define NOGDI             // Prevents wingdi.h from defining Rectangle and other GDI macros
@@ -68,6 +68,53 @@ int main() {
                 }
                 if (GuiButton((Rectangle){400 , 240, 160, 40 }, "SEND")) {
                     
+                    WSADATA ws;
+	                cout<<"Initializing..."<<endl;
+	                if(WSAStartup(MAKEWORD(2,2), &ws) != 0){
+	                	cout<<"Error : " <<WSAGetLastError();
+	                	return 1;
+	                }
+	                SOCKET sock;
+	                sock = socket(AF_INET, SOCK_STREAM, 0);
+	                if(sock == INVALID_SOCKET){
+	                	cout<<"Error : "<<WSAGetLastError();
+	                	WSACleanup();
+	                	return 1;
+	                }
+	                cout<<"reference ID : "<<sock<<endl;
+	                sockaddr_in ser;
+	                ser.sin_family = AF_INET;
+	                ser.sin_port = htons(5555);
+	                ser.sin_addr.s_addr = INADDR_ANY;
+	                cout<<"Server started!\n";
+	                bind(sock, (sockaddr*)&ser, sizeof(ser));
+                    if(listen(sock, 1) == SOCKET_ERROR){
+	                	cout<<"Error : "<<WSAGetLastError();
+	                	closesocket(sock);
+	                	WSACleanup();
+	                	return 1;
+	                }
+	                else {
+                    	DrawText("LISTENING...", 400, 270, 20, BLUE);
+	                }
+	                SOCKET acceptsock;
+	                acceptsock = accept(sock, NULL, NULL);
+	                if(acceptsock == INVALID_SOCKET){
+	                	cout<<"Error : "<<WSAGetLastError();
+	                	closesocket(sock);
+	                	WSACleanup();
+	                	return 1;
+	                }
+	                else {
+	                	DrawText("SENDING FILE", 400, 270, 20, GREEN);
+	                }
+                    FILE *data = fopen(nameBuffer, "rb");
+                    uint8_t byte;
+                    while(fread(&byte, 1, 1, data)){
+                        send(acceptsock, (char *)byte, 1, 0);
+                    }
+                    WSACleanup();
+                    DrawText("FILE TRANSFER COMPLETED", 400, 290, 20, GREEN);
                 }
             } else if (mode == 2) {
                 DrawText("RECV MODE", 400, 130, 20, RAYWHITE);

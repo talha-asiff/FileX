@@ -122,29 +122,35 @@ int main() {
                     mode = 1;
                 }
                 } else {
+                    string buff;
+                    getline(inp, buff);
                     DrawText("DOWNLOADING HOSTED FILE", 400, 150, 10, RAYWHITE);
-                     WSADATA ws;
+                    WSADATA ws;
 	                if(WSAStartup(MAKEWORD(2,2), &ws) != 0){
+                        cout << "1"<<endl;
 	                	return 1;
 	                }
 	                SOCKET sock;
 	                sock = socket(AF_INET, SOCK_STREAM, 0);
 	                if(sock == INVALID_SOCKET){
+                        cout << "2"<<endl;
 	                	WSACleanup();
 	                	return 1;
 	                }
                     sockaddr_in ser;
                     ser.sin_family = AF_INET;
                     ser.sin_port = htons(5555);
-                    ser.sin_addr.s_addr = inet_addr(nameBuffer);
-                    if(connect(sock, (sockaddr*)&ser, sizeof(ser)) == SOCKET_ERROR){
-                        closesocket(sock);
-                        WSACleanup();
-                        return 1;
-                    }
+                    ser.sin_addr.s_addr = inet_addr(buff.c_str());
+                    // if(connect(sock, (sockaddr*)&ser, sizeof(ser)) == SOCKET_ERROR){
+                    //      cout << "3"<<endl;
+                    //     closesocket(sock);
+                    //     WSACleanup();
+                    //     return 1;
+                    // }
                      FILE *data = fopen("downloaded.png", "wb");
                     uint8_t byte;
-                    while(recv(sock, (char *)byte, 1, 0)){              
+                    while(recv(sock, (char *)byte, 1, 0)){  
+                                    
                         fwrite(&byte, 1, 1, data);
                     }
                     WSACleanup();

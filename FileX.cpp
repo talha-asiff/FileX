@@ -71,25 +71,20 @@ int main() {
                     WSADATA ws;
 	                cout<<"Initializing..."<<endl;
 	                if(WSAStartup(MAKEWORD(2,2), &ws) != 0){
-	                	cout<<"Error : " <<WSAGetLastError();
 	                	return 1;
 	                }
 	                SOCKET sock;
 	                sock = socket(AF_INET, SOCK_STREAM, 0);
 	                if(sock == INVALID_SOCKET){
-	                	cout<<"Error : "<<WSAGetLastError();
 	                	WSACleanup();
 	                	return 1;
 	                }
-	                cout<<"reference ID : "<<sock<<endl;
 	                sockaddr_in ser;
 	                ser.sin_family = AF_INET;
 	                ser.sin_port = htons(5555);
 	                ser.sin_addr.s_addr = INADDR_ANY;
-	                cout<<"Server started!\n";
 	                bind(sock, (sockaddr*)&ser, sizeof(ser));
                     if(listen(sock, 1) == SOCKET_ERROR){
-	                	cout<<"Error : "<<WSAGetLastError();
 	                	closesocket(sock);
 	                	WSACleanup();
 	                	return 1;
@@ -100,7 +95,6 @@ int main() {
 	                SOCKET acceptsock;
 	                acceptsock = accept(sock, NULL, NULL);
 	                if(acceptsock == INVALID_SOCKET){
-	                	cout<<"Error : "<<WSAGetLastError();
 	                	closesocket(sock);
 	                	WSACleanup();
 	                	return 1;
@@ -129,6 +123,33 @@ int main() {
                 }
                 } else {
                     DrawText("DOWNLOADING HOSTED FILE", 400, 150, 10, RAYWHITE);
+                     WSADATA ws;
+	                if(WSAStartup(MAKEWORD(2,2), &ws) != 0){
+	                	return 1;
+	                }
+	                SOCKET sock;
+	                sock = socket(AF_INET, SOCK_STREAM, 0);
+	                if(sock == INVALID_SOCKET){
+	                	WSACleanup();
+	                	return 1;
+	                }
+                    sockaddr_in ser;
+                    ser.sin_family = AF_INET;
+                    ser.sin_port = htons(5555);
+                    ser.sin_addr.s_addr = inet_addr(nameBuffer);
+                    if(connect(sock, (sockaddr*)&ser, sizeof(ser)) == SOCKET_ERROR){
+                        closesocket(sock);
+                        WSACleanup();
+                        return 1;
+                    }
+                     FILE *data = fopen("downloaded.png", "wb");
+                    uint8_t byte;
+                    while(recv(sock, (char *)byte, 1, 0)){              
+                        fwrite(&byte, 1, 1, data);
+                    }
+                    WSACleanup();
+                    DrawText("FILE TRANSFER COMPLETED", 400, 290, 20, GREEN);
+
                 }
 
             } else {

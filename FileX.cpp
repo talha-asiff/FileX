@@ -13,6 +13,7 @@
 #include <iostream>
 #include <string>
 #include <inttypes.h>
+#include <thread>
 // Windows Sockets setup
 #define WIN32_LEAN_AND_MEAN
 #define NOGDI             // Prevents wingdi.h from defining Rectangle and other GDI macros
@@ -37,6 +38,82 @@
 #include "raygui.h"
 
 using namespace std;
+int currModeData = 1;
+static int sendData(char * nameBuffer){
+    WSADATA ws;
+    cout<<"Initializing..."<<endl;
+	if(WSAStartup(MAKEWORD(2,2), &ws) != 0){
+	 	return 1;
+	}
+	SOCKET sock;
+	sock = socket(AF_INET, SOCK_STREAM, 0);
+	if(sock == INVALID_SOCKET){
+		WSACleanup();
+		return 1;
+	}
+	sockaddr_in ser;
+	ser.sin_family = AF_INET;
+	ser.sin_port = htons(5555);
+	ser.sin_addr.s_addr = INADDR_ANY;
+	bind(sock, (sockaddr*)&ser, sizeof(ser));
+    if(listen(sock, 1) == SOCKET_ERROR){
+	    closesocket(sock);
+	    WSACleanup();
+	    return 1;
+	}
+	else {
+    	// DrawText("LISTENING...", 400, 270, 20, BLUE);
+	}
+	SOCKET acceptsock;
+	acceptsock = accept(sock, NULL, NULL);
+	if(acceptsock == INVALID_SOCKET){
+		closesocket(sock);
+		WSACleanup();
+		return 1;
+	}
+	else {
+		// DrawText("SENDING FILE", 400, 270, 20, GREEN);
+	}
+    FILE *data = fopen(nameBuffer, "rb");
+    uint8_t byte;
+    while(fread(&byte, 1, 1, data)){
+        send(acceptsock, (char *)byte, 1, 0);
+    }
+    WSACleanup();
+}
+
+static int recvData(char * nameBuffer, string buff){
+    
+    WSADATA ws;
+	if(WSAStartup(MAKEWORD(2,2), &ws) != 0){
+        cout << "1"<<endl;
+		return 1;
+	}
+	SOCKET sock;
+	sock = socket(AF_INET, SOCK_STREAM, 0);
+	if(sock == INVALID_SOCKET){
+        cout << "2"<<endl;
+		WSACleanup();
+		return 1;
+	}
+    sockaddr_in ser;
+    ser.sin_family = AF_INET;
+    ser.sin_port = htons(5555);
+    ser.sin_addr.s_addr = inet_addr(buff.c_str());
+    if(connect(sock, (sockaddr*)&ser, sizeof(ser)) == SOCKET_ERROR){
+        closesocket(sock);
+        WSACleanup();
+        return 1;
+    }
+    FILE *data = fopen("downloaded.png", "wb");
+    uint8_t byte;
+    while(recv(sock, (char *)byte, 1, 0)){  
+                    
+         fwrite(&byte, 1, 1, data);
+    }
+    WSACleanup();
+                    
+}
 int main() {
     ofstream out("C:\\FileX\\Data\\info.txt");
     ifstream inp("C:\\FileX\\Data\\info.txt");
@@ -68,46 +145,11 @@ int main() {
                 }
                 if (GuiButton((Rectangle){400 , 240, 160, 40 }, "SEND")) {
                     
-                    WSADATA ws;
-	                cout<<"Initializing..."<<endl;
-	                if(WSAStartup(MAKEWORD(2,2), &ws) != 0){
-	                	return 1;
-	                }
-	                SOCKET sock;
-	                sock = socket(AF_INET, SOCK_STREAM, 0);
-	                if(sock == INVALID_SOCKET){
-	                	WSACleanup();
-	                	return 1;
-	                }
-	                sockaddr_in ser;
-	                ser.sin_family = AF_INET;
-	                ser.sin_port = htons(5555);
-	                ser.sin_addr.s_addr = INADDR_ANY;
-	                bind(sock, (sockaddr*)&ser, sizeof(ser));
-                    if(listen(sock, 1) == SOCKET_ERROR){
-	                	closesocket(sock);
-	                	WSACleanup();
-	                	return 1;
-	                }
-	                else {
-                    	DrawText("LISTENING...", 400, 270, 20, BLUE);
-	                }
-	                SOCKET acceptsock;
-	                acceptsock = accept(sock, NULL, NULL);
-	                if(acceptsock == INVALID_SOCKET){
-	                	closesocket(sock);
-	                	WSACleanup();
-	                	return 1;
-	                }
-	                else {
-	                	DrawText("SENDING FILE", 400, 270, 20, GREEN);
-	                }
-                    FILE *data = fopen(nameBuffer, "rb");
-                    uint8_t byte;
-                    while(fread(&byte, 1, 1, data)){
-                        send(acceptsock, (char *)byte, 1, 0);
+                    if(currModeData){
+                         thread t(sendData, nameBuffer);
+                        t.join();
+                        currModeData = 0;
                     }
-                    WSACleanup();
                     DrawText("FILE TRANSFER COMPLETED", 400, 290, 20, GREEN);
                 }
             } else if (mode == 2) {
@@ -122,40 +164,13 @@ int main() {
                     mode = 1;
                 }
                 } else {
-                    string buff;
+                   if(currModeData){
+                     string buff;
                     getline(inp, buff);
-                    DrawText("DOWNLOADING HOSTED FILE", 400, 150, 10, RAYWHITE);
-                    WSADATA ws;
-	                if(WSAStartup(MAKEWORD(2,2), &ws) != 0){
-                        cout << "1"<<endl;
-	                	return 1;
-	                }
-	                SOCKET sock;
-	                sock = socket(AF_INET, SOCK_STREAM, 0);
-	                if(sock == INVALID_SOCKET){
-                        cout << "2"<<endl;
-	                	WSACleanup();
-	                	return 1;
-	                }
-                    sockaddr_in ser;
-                    ser.sin_family = AF_INET;
-                    ser.sin_port = htons(5555);
-                    ser.sin_addr.s_addr = inet_addr(buff.c_str());
-                    // if(connect(sock, (sockaddr*)&ser, sizeof(ser)) == SOCKET_ERROR){
-                    //      cout << "3"<<endl;
-                    //     closesocket(sock);
-                    //     WSACleanup();
-                    //     return 1;
-                    // }
-                     FILE *data = fopen("downloaded.png", "wb");
-                    uint8_t byte;
-                    while(recv(sock, (char *)byte, 1, 0)){  
-                                    
-                        fwrite(&byte, 1, 1, data);
-                    }
-                    WSACleanup();
-                    DrawText("FILE TRANSFER COMPLETED", 400, 290, 20, GREEN);
-
+                    thread t(recvData, nameBuffer, buff);
+                    t.join();
+                    currModeData = 0;
+                   }
                 }
 
             } else {

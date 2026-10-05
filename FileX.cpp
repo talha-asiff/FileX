@@ -53,7 +53,7 @@ static int sendData(char * nameBuffer){
 	}
 	sockaddr_in ser;
 	ser.sin_family = AF_INET;
-	ser.sin_port = htons(5555);
+	ser.sin_port = htons(5555); 
 	ser.sin_addr.s_addr = INADDR_ANY;
 	bind(sock, (sockaddr*)&ser, sizeof(ser));
     if(listen(sock, 1) == SOCKET_ERROR){
@@ -72,13 +72,16 @@ static int sendData(char * nameBuffer){
 		return 1;
 	}
 	else {
+        cout << "sending file"<<endl;
 		// DrawText("SENDING FILE", 400, 270, 20, GREEN);
 	}
     FILE *data = fopen(nameBuffer, "rb");
     uint8_t byte;
+    cout << "recieving file"<<endl;
     while(fread(&byte, 1, 1, data)){
         send(acceptsock, (char *)byte, 1, 0);
     }
+    cout << "file transfer done"<<endl;
     WSACleanup();
 }
 
@@ -108,7 +111,7 @@ static int recvData(char * nameBuffer, string buff){
     FILE *data = fopen("downloaded.png", "wb");
     uint8_t byte;
     while(recv(sock, (char *)byte, 1, 0)){  
-                    
+        cout << " [" << byte << " ] ";
          fwrite(&byte, 1, 1, data);
     }
     WSACleanup();
